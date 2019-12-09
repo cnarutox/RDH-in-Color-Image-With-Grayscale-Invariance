@@ -3,6 +3,8 @@ import numpy as np
 from encode import encode
 from numba import jit
 from random import randint
+import copy
+from appraise_PSNR import appraise_PSNR
 
 RGB = np.array([0.299, 0.587, 0.114])
 
@@ -45,7 +47,7 @@ def embedMsg(img, gray, mesL, selected, predict, pError, Dt):
     tagsCode = '0'
     ec = 0
     location = 0
-    msg = [int(i) for i in str(bin(9999999999999999999999))[2:]]
+    msg = [int(i) for i in str(bin(2**19999))[2:]]
     # msg = [1, 0, 0]
     msgIndex = 0
     for i in zip(*selected):
@@ -85,6 +87,8 @@ if __name__ == '__main__':
     msg = ''
     if 1:
         img = cv2.imread('./lena.png')
+        psnr_img = copy.copy(img)
+        print("psnr" + str(appraise_PSNR(psnr_img, img)))
         gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY).astype(np.int32)[:Size, :Size]
         img = img.astype(np.int32)[:Size, :Size]
         # cv2.imshow('src', img)
@@ -92,7 +96,7 @@ if __name__ == '__main__':
         predict, pError, rho = PEs(gray, img)
         #
         Dt = 20
-        mesL = int(74)
+        mesL = int(20000)
         flag = 1
         rhoT = 0
         #
@@ -109,6 +113,8 @@ if __name__ == '__main__':
             enough, lastEc, La, N, tagsCode, msg = embedMsg(img, gray, mesL, selected, predict, pError, Dt)
             rhoT += 0 if enough else 1
         img, gray, pError = enough
+
+        # print("psnr-- " + str(appraise_PSNR(psnr_img, img)))
         #
         border = sorted(
             list(
@@ -122,6 +128,7 @@ if __name__ == '__main__':
             img[loc][2] = 2 * (img[loc][2] // 2) + int(char)
         cv2.imwrite('./Slena.png', img)
         print(rhoT, int(lastEc), La, N, tagsCode)
+        print("psnr: " + str(appraise_PSNR(psnr_img, img)))
 
         imgRcv = cv2.imread('./Slena.png')
         grayRcv = cv2.cvtColor(imgRcv, cv2.COLOR_RGB2GRAY).astype(np.int32)[:Size, :Size]

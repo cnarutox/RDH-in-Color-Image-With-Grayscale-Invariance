@@ -8,6 +8,7 @@ def appraise_PSNR(img1, img2):
     img2 = img2.astype(np.float)
     L = img1.size
     mse = np.vdot(img1 - img2, img1 - img2) / L
+    # mse = np.sum((img1 - img2) ** 2) / L
     psnr = 10 * math.log10(255 * 255 / mse)
 
     return psnr
