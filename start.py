@@ -92,7 +92,7 @@ def cvtGray(img):
 
 
 if __name__ == '__main__':
-    Size = 40
+    Size = None
     msg = 314159265659314159265659314159265659314159265659
     img = cv2.imread('./lena.png')[:Size, :Size]
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -183,14 +183,14 @@ if __name__ == '__main__':
         X = np.mat(np.column_stack(([1] * 3, grM, grM**2)))
         predictRcv[i][0] = predictV(rM, grayRcv[i], X)
         predictRcv[i][2] = predictV(bM, grayRcv[i], X)
-        
-        pErrorRcv[i] = imgRcv[i] - predictRcv[i]
+
+        pErrorRcv[i] = imgRcv[i] - predict[i]
 
         msgRcv.append(int(pErrorRcv[i][0]) % 2)
         nextEc = pErrorRcv[i][2] % 2
 
         pErrorRcv[i] = pErrorRcv[i] // 2
-        imgRcv[i] = predictRcv[i] + pErrorRcv[i]
+        imgRcv[i] = predict[i] + pErrorRcv[i]
         imgRcv[i][1] = np.round((grayRcv[i] - imgRcv[i][0] * RGB[0] - imgRcv[i][2] * RGB[2]) / RGB[1])
         if lastEc != 0:
             if np.round(np.array([imgRcv[i][0], imgRcv[i][1] + lastEc, imgRcv[i][2]]).dot(RGB)) == grayRcv[i]:
@@ -205,6 +205,7 @@ if __name__ == '__main__':
         lastEc = abs(nextEc)
     print(f"=> Finish extracting received msg: {int(''.join([str(i) for i in list(reversed(msgRcv))]), 2)}")
     print(
-        f"=>\n{bin(msg)[2:]}\n{''.join([str(i) for i in list(reversed(msgRcv))])} The msg is equal to received msg: {''.join(bin(msg)[2:]) == ''.join([str(i) for i in list(reversed(msgRcv))])}"
+        f"=> The msg is equal to received msg: {''.join(bin(msg)[2:]) == ''.join([str(i) for i in list(reversed(msgRcv))])}"
     )
-    # plt.show()
+    plt.show()
+    plt.savefig('Grayscale.png')
