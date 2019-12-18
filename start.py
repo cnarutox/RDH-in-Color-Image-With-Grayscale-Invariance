@@ -23,8 +23,8 @@ def PEs(gray, img):
     pError = np.zeros(img.shape)
     predict = img.copy().astype(np.int32)
     rho = np.zeros(gray.shape)
-    for i in range(1, img.shape[0] - 1):
-        for j in range(1, img.shape[1] - 1):
+    for i in range(2, img.shape[0] - 2):
+        for j in range(2, img.shape[1] - 2):
             r = np.array([img[i + 1, j, 0], img[i, j + 1, 0], img[i + 1, j + 1, 0]]).reshape(3, 1)
             b = np.array([img[i + 1, j, 2], img[i, j + 1, 2], img[i + 1, j + 1, 2]]).reshape(3, 1)
             gr = np.array([gray[i + 1, j], gray[i, j + 1], gray[i + 1, j + 1]]).reshape(3, 1)
@@ -61,7 +61,7 @@ def embedMsg(img, gray, msg, mesL, selected, predict, pError, Dt):
             if np.round(rgb.dot(RGB)) != GRAY[i]:
                 rgb[1] = np.ceil((GRAY[i] - rgb[0] * RGB[0] - rgb[2] * RGB[2]) / RGB[1])
             # rgb[1] = np.round((GRAY[i] - rgb[0] * RGB[0] - rgb[2] * RGB[2]) / RGB[1])
-            if np.round(rgb.dot(RGB)) != GRAY[i]: print('!!!!!!!!!!!!!')
+            if np.round(rgb.dot(RGB)) != GRAY[i]: print(f'该位置{i}无法满足灰度不变性')
             D = np.linalg.norm(rgb - IMG[i])
             if np.max(rgb) > 255 or np.min(rgb) < 0 or D > Dt:
                 tags.append(1)  # 设置当前的tag为非法（tag为1）
@@ -92,41 +92,45 @@ def cvtGray(img):
 
 
 if __name__ == '__main__':
+    # 基本参数
     Size = None
-    msg = 314159265659314159265659314159265659314159265659
-    img = cv2.imread('./lena.png')[:Size, :Size]
+    fig = 'lena.png'
+    Dt = 20
+    rhoT = 0
+    msg = 314159265659314159265659314159265659314159265659314159265659314159265659314159265659314159265659
+    mesL = len(bin(msg)) - 2
+    # 读取图片
+    img = cv2.imread(fig)[:Size, :Size]
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     gray = cvtGray(img)
-
+    mfig = '.'.join(fig.split('.')[:-1] + ['modified'] + fig.split('.')[-1:])  # lena.modified.png
+    print(f'{img}\n=> Finish reading image!')
+    # 准备嵌入前后灰度对比图
     plt.figure(figsize=(12, 6)), plt.suptitle('Grayscale')
     plt.subplot(1, 2, 1), plt.title('Origin')
     plt.hist(gray.ravel(), 256)
     plt.show(block=False)
-    print(f'{img}\n=> Finish reading image!')
+    # 计算 predict 以及 predication error
     predict, pError, rho = PEs(gray, img)
     print(f'=> Finish calculating predication error!')
-    #
-    Dt = 20
-    mesL = len(bin(msg)) - 2
-    rhoT = 0
-    #
+    # 根据消息长度初选 ⍴
     while np.count_nonzero(rho < rhoT) <= mesL:
         if np.count_nonzero(rho < rhoT) == rho.size:
             print('=> The picture is too small! Exit!')
             exit()
         rhoT += 1
-    #
+    # 考虑参数后再选 ⍴
     enough = 0
     while not enough:
-        selected = [n + 1 for n in np.where(rho[1:-1, 1:-1] < rhoT)]
-        if selected[0].size >= (img.shape[0] - 2)**2:
+        selected = [n + 2 for n in np.where(rho[2:-2, 2:-2] < rhoT)]
+        if selected[0].size >= (img.shape[0] - 4)**2:
             print('=> The picture is too small! Exit!')
             exit()
         enough, lastEc, La, N, tagsCode = embedMsg(img, gray, str(bin(msg)[2:]), mesL, selected, predict, pError, Dt)
         rhoT += 0 if enough else 1
     print(f'=> Finish embeding msg with the critical value of ⍴ being {rhoT}')
     img, gray, pError = enough
-    #
+    # 在边框中嵌入参数
     border = sorted(
         list(
             set(map(tuple, np.argwhere(gray == gray))) -
@@ -140,19 +144,20 @@ if __name__ == '__main__':
                          filter(lambda xy: invariant(img[xy]), border)):
         img[loc][2] = 2 * (img[loc][2] // 2) + int(char)
     print(f'=> Finish embeding parameters:\n\trhoT: {rhoT}, lastEc: {lastEc}, La: {La}, N: {N}, tagsCode: {tagsCode}')
-    cv2.imwrite('./Slena.png', cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+    cv2.imwrite(mfig, cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
 
-    # 提取信息
-    imgRcv = cv2.imread('./Slena.png')
+    # 读取嵌入信息的图片并计算其 predication error
+    imgRcv = cv2.imread(mfig)
     imgRcv = cv2.cvtColor(imgRcv, cv2.COLOR_BGR2RGB)
     grayRcv = cvtGray(imgRcv)
     predictRcv, pErrorRcv, rhoRcv = PEs(grayRcv, imgRcv)
     print(f'=> Finish reading embeded image and calculating predication error!')
-    #验证
+    # 验证灰度不变性
     plt.subplot(1, 2, 2), plt.title('Modified')
     plt.hist(grayRcv.ravel(), 256)
     plt.show(block=False)
     print(f'=> Ensure the grayscale invariant: {np.all(gray == grayRcv)}')
+    # 提取边框的参数
     border = sorted(
         list(
             set(map(tuple, np.argwhere(grayRcv == grayRcv))) -
@@ -163,15 +168,15 @@ if __name__ == '__main__':
     lastEc = int(''.join(border[16:24]), 2)
     La = int(''.join(border[24:40]), 2)
     N = int(''.join(border[40:56]), 2)
-    selected = [tuple(n + 1) for n in np.argwhere(rhoRcv[1:-1, 1:-1] < rhoT)]
+    selected = [tuple(n + 2) for n in np.argwhere(rhoRcv[2:-2, 2:-2] < rhoT)]
     tagsCode = [imgRcv[value][2] % 2
                 for value in filter(lambda xy: invariant(imgRcv[xy]), selected[N:])][:La] if La != 1 else [0] * N
     print(
         f'=> Finish extractig parameters:\n\trhoT: {rhoT}, lastEc: {lastEc}, La: {La}, N: {N}, tagsCode: {"".join([str(i) for i in tagsCode])}'
     )
-
+    # 根据参数去提取嵌入的信息
     candidate = reversed([selected[:N][index] for index, value in enumerate(tagsCode) if value == 0])
-    predictRcv = imgRcv.copy()
+    predictRcv = imgRcv.copy().astype(np.int32)
     pErrorRcv = np.zeros(imgRcv.shape)
     msgRcv = []
     for i in candidate:
@@ -183,14 +188,13 @@ if __name__ == '__main__':
         X = np.mat(np.column_stack(([1] * 3, grM, grM**2)))
         predictRcv[i][0] = predictV(rM, grayRcv[i], X)
         predictRcv[i][2] = predictV(bM, grayRcv[i], X)
-
-        pErrorRcv[i] = imgRcv[i] - predict[i]
+        pErrorRcv[i] = imgRcv[i] - predictRcv[i]
 
         msgRcv.append(int(pErrorRcv[i][0]) % 2)
-        nextEc = pErrorRcv[i][2] % 2
 
+        nextEc = pErrorRcv[i][2] % 2
         pErrorRcv[i] = pErrorRcv[i] // 2
-        imgRcv[i] = predict[i] + pErrorRcv[i]
+        imgRcv[i] = predictRcv[i] + pErrorRcv[i]
         imgRcv[i][1] = np.round((grayRcv[i] - imgRcv[i][0] * RGB[0] - imgRcv[i][2] * RGB[2]) / RGB[1])
         if lastEc != 0:
             if np.round(np.array([imgRcv[i][0], imgRcv[i][1] + lastEc, imgRcv[i][2]]).dot(RGB)) == grayRcv[i]:
@@ -200,12 +204,10 @@ if __name__ == '__main__':
         else:
             if np.round(np.array([imgRcv[i][0], imgRcv[i][1], imgRcv[i][2]]).dot(RGB)) != grayRcv[i]:
                 print(f"index {i} has no matched ec")
-                pass
-
         lastEc = abs(nextEc)
     print(f"=> Finish extracting received msg: {int(''.join([str(i) for i in list(reversed(msgRcv))]), 2)}")
     print(
         f"=> The msg is equal to received msg: {''.join(bin(msg)[2:]) == ''.join([str(i) for i in list(reversed(msgRcv))])}"
     )
-    plt.show()
     plt.savefig('Grayscale.png')
+    plt.show()

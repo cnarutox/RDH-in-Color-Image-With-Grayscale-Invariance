@@ -2,9 +2,11 @@ from matplotlib import pyplot as plt
 import cv2
 import random
 
+
 def bgr_rgb(img):
     (r, g, b) = cv2.split(img)
     return cv2.merge([b, g, r])
+
 
 def orb_detect(image_a, image_b):
     # feature match
@@ -19,8 +21,7 @@ def orb_detect(image_a, image_b):
     # Sort them in the order of their distance.
     matches = sorted(matches, key=lambda x: x.distance)
     # Draw first 10 matches.
-    img3 = cv2.drawMatches(image_a, kp1, image_b, kp2,
-                           matches[:60], None, flags=2)
+    img3 = cv2.drawMatches(image_a, kp1, image_b, kp2, matches[:60], None, flags=2)
     return bgr_rgb(img3)
 
 
@@ -46,6 +47,7 @@ def sift_detect(img1, img2, detector='surf'):
     # cv2.drawMatchesKnn expects list of lists as matches.
     img3 = cv2.drawMatchesKnn(img1, kp1, img2, kp2, good, None, flags=2)
     return bgr_rgb(img3)
+
 
 if __name__ == "__main__":
     # load image

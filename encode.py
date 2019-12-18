@@ -74,8 +74,6 @@ def encode(msg):
     return "".join([str(char) for char in msg]), len(msg)
 
 
-# def decode(msg)
-
 if __name__ == '__main__':
     string = '0100011'
     codes = [ord(char) for char in string] + [256]
