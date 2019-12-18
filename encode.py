@@ -67,11 +67,15 @@ def decode_fraction(input_fraction, input_prob):
 
 
 def encode(msg):
-    codes = [ord(str(char)) for char in msg] + [256]
-    prob = build_prob(codes)
-    fraction_range = encode_fraction_range(codes, prob)
-    binary_fraction = find_binary_fraction(*fraction_range)
-    return "".join([str(char) for char in msg]), len(msg)
+    # codes = [ord(str(char)) for char in msg] + [256]
+    # prob = build_prob(codes)
+    # fraction_range = encode_fraction_range(codes, prob)
+    # binary_fraction = find_binary_fraction(*fraction_range)
+    return ''.join([f"{bin(ord(i))[2:]:>08}" for i in msg])
+
+
+def decode(msg):
+    return ''.join([chr(int(i, 2)) for i in (msg[i:i + 8] for i in range(0, len(msg), 8))])
 
 
 if __name__ == '__main__':

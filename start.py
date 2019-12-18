@@ -3,9 +3,8 @@ from random import randint
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-from numba import jit
 
-from encode import encode
+from encode import encode, decode
 
 RGB = np.array([0.299, 0.587, 0.114])
 
@@ -48,12 +47,11 @@ def embedMsg(img, gray, msg, mesL, selected, predict, pError, Dt):
     tagsCode = '0'
     ec = 0
     location = 0
-    msg = [int(i) for i in msg]
     msgIndex = 0
     for i in zip(*selected):
         if tags.count(0) < mesL:
             # 遍历满足rho<rhoT的像素点进行插入信息
-            pERROR[i][0] = 2 * pERROR[i][0] + msg[msgIndex]
+            pERROR[i][0] = 2 * pERROR[i][0] + int(msg[msgIndex])
             pERROR[i][2] = 2 * pERROR[i][2] + ec
             ec = abs(int(IMG[i][1] - np.round((GRAY[i] - IMG[i][0] * RGB[0] - IMG[i][2] * RGB[2]) / RGB[1])))
             rgb = np.array([predict[i][loc] + pERROR[i][loc] for loc in range(3)])
@@ -72,7 +70,7 @@ def embedMsg(img, gray, msg, mesL, selected, predict, pError, Dt):
         else:
             if La == 0:
                 if np.unique(tags).size > 1:
-                    tagsCode, La = encode(tags)
+                    tagsCode, La = ''.join([str(char) for char in tags]), len(tags)
                 else:
                     La = 1
             if location == La: break
@@ -80,7 +78,7 @@ def embedMsg(img, gray, msg, mesL, selected, predict, pError, Dt):
                 IMG[i][2] = 2 * (IMG[i][2] // 2) + int(tagsCode[location])
                 location += 1
     if len(tags) < mesL or location < La: return False, ec, La, len(tags), tagsCode
-    print(f"=> Message: {int(''.join([str(i) for i in msg]), 2)}")
+    print(f"=> Message: {decode(msg)}")
     return (IMG, GRAY, pERROR), ec, La, len(tags), tagsCode
 
 
@@ -93,12 +91,12 @@ def cvtGray(img):
 
 if __name__ == '__main__':
     # 基本参数
-    Size = None
+    Size = 60
     fig = 'lena.png'
     Dt = 20
     rhoT = 0
-    msg = 314159265659314159265659314159265659314159265659314159265659314159265659314159265659314159265659
-    mesL = len(bin(msg)) - 2
+    msg = '314159265659314159265659'
+    mesL = len(encode(msg))
     # 读取图片
     img = cv2.imread(fig)[:Size, :Size]
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -126,7 +124,7 @@ if __name__ == '__main__':
         if selected[0].size >= (img.shape[0] - 4)**2:
             print('=> The picture is too small! Exit!')
             exit()
-        enough, lastEc, La, N, tagsCode = embedMsg(img, gray, str(bin(msg)[2:]), mesL, selected, predict, pError, Dt)
+        enough, lastEc, La, N, tagsCode = embedMsg(img, gray, encode(msg), mesL, selected, predict, pError, Dt)
         rhoT += 0 if enough else 1
     print(f'=> Finish embeding msg with the critical value of ⍴ being {rhoT}')
     img, gray, pError = enough
@@ -178,7 +176,7 @@ if __name__ == '__main__':
     candidate = reversed([selected[:N][index] for index, value in enumerate(tagsCode) if value == 0])
     predictRcv = imgRcv.copy().astype(np.int32)
     pErrorRcv = np.zeros(imgRcv.shape)
-    msgRcv = []
+    msgRcv = ''
     for i in candidate:
         rM = np.array([imgRcv[i[0] + 1, i[1], 0], imgRcv[i[0], i[1] + 1, 0],
                        imgRcv[i[0] + 1, i[1] + 1, 0]]).reshape(3, 1)
@@ -190,7 +188,7 @@ if __name__ == '__main__':
         predictRcv[i][2] = predictV(bM, grayRcv[i], X)
         pErrorRcv[i] = imgRcv[i] - predictRcv[i]
 
-        msgRcv.append(int(pErrorRcv[i][0]) % 2)
+        msgRcv += str(int(pErrorRcv[i][0]) % 2)
 
         nextEc = pErrorRcv[i][2] % 2
         pErrorRcv[i] = pErrorRcv[i] // 2
@@ -205,9 +203,7 @@ if __name__ == '__main__':
             if np.round(np.array([imgRcv[i][0], imgRcv[i][1], imgRcv[i][2]]).dot(RGB)) != grayRcv[i]:
                 print(f"index {i} has no matched ec")
         lastEc = abs(nextEc)
-    print(f"=> Finish extracting received msg: {int(''.join([str(i) for i in list(reversed(msgRcv))]), 2)}")
-    print(
-        f"=> The msg is equal to received msg: {''.join(bin(msg)[2:]) == ''.join([str(i) for i in list(reversed(msgRcv))])}"
-    )
+    print(f"=> Finish extracting received msg: {decode(msgRcv[::-1])}")
+    print(f"=> The msg is equal to received msg: {msg == decode(msgRcv[::-1])}")
     plt.savefig('Grayscale.png')
     plt.show()
