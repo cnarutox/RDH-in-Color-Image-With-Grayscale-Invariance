@@ -42,4 +42,5 @@
 
 ### Others
 > Motivation: This is the final project of class **Information Security Foundation**
-> Stars Wanted: If you it can run on your machine, please **star** this project!
+>
+> Stars Wanted: If it can run on your machine, please **star** this project!
