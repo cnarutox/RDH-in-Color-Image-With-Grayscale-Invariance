@@ -94,7 +94,7 @@ function [stego, L_embedmess, L_a, tag, N] = addPEs(gray, cover, PER, PEB, pred_
 
     for id = 1:length(lsb_ind)
 
-        if id > length(lsb_ind)ƒ
+        if id > length(lsb_ind)
             break;
         end
 
