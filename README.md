@@ -28,10 +28,10 @@
 - 程序会生成并保存灰度对比图`Grayscale.png`
 ![Grayscale](Grayscale.png)
 - 下面是程序加密前后的图片对比，可以看到人眼是很难看出来变化
-<figure class="half">
+<div class="half" align="center">
     <img src="lena.png" width="300">
     <img src="lena.modified.png" width="300"/>
-</figure>
+</div>
 
 ### Implement Details
 - ***Size***: 嵌入区域的高宽（左上角算起），默认为`None`即嵌入整张图片
@@ -40,7 +40,7 @@
 - ***rhoT***: 论文中的参数$\rho_t$
 - ***msg***: 嵌入的消息字符串，如`'314159265659314159265659'`
 
-### Report
+### Presentation
 ![img](img/幻灯片1.png)
 ![img](img/幻灯片5.png)
 ![img](img/幻灯片6.png)
