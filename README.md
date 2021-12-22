@@ -140,3 +140,55 @@
 > Motivation: This is the final project of class **Information Security Foundation**
 >
 > Stars Wanted: If it can run on your machine, please **star** this project!
+> 
+> And there are some other related collected resources you may need, if you like you can buy me a coffee (>= 0.1￥) 😁 Thanks!
+```shell
+├─展示幻灯片.pptx
+├─data-hiding-Lsb
+├─data-hiding_1MSB
+├─data-hiding_2MSB
+├─data-hiding_histogram
+│  ├─img
+│  └─JPEG_Toolbox
+├─High-capacity RDHEI based on extended run-length coding and block-based MSB plane rearrangement
+│  └─测试图像
+├─Kuo, W. C., & Kuo, S. H. (2012). Proceedings of the 2012 Seventh Asia Joint Conference on Information Security
+│  ├─img
+│  └─JPEG_Toolbox
+├─Reversible Data Hiding in JPEG Image Based on DCT Frequency and Block Selection
+│  ├─jpegread
+│  ├─testimage
+│  └─utils
+├─Reversible Data Hiding Based on histogram shifting (4-8-16-32-internal correlation)
+│  ├─imgs
+│  ├─JPEG_Toolbox
+│  └─result
+├─Reversible Data Hiding Based on Two-Dimensional Histograms Modification
+│  ├─代码（cheng's)
+│  │  ├─imgs
+│  │  └─JPEG_Toolbox
+│  └─测容量（cheng's）
+│      ├─imgs
+│      └─JPEG_Toolbox
+├─Reversible Data Hiding Based on Two-Dimensional Histograms Modification--improved by setting flag
+│  ├─Jpeg_toolbox
+│  └─具体代码
+│      ├─代码
+│      │  ├─imgs
+│      │  └─JPEG_Toolbox
+│      └─测容量
+│          ├─imgs
+│          └─JPEG_Toolbox
+├─Reversible Data Hiding in Color Image with Grayscale Invariance
+│  ├─Matlab implementation
+│  │  ├─img
+│  │  ├─old_version
+│  └─readme
+├─Reversible data hiding under inconsistent distortion metrics
+├─signal processing
+│  └─signal processing
+├─书籍资料
+└─多直方图
+    └─多直方图
+```
+<div align="center"><img src="https://github.com/cnarutox/RDH-in-Color-Image-With-Grayscale-Invariance/blob/master/img/ailpay.png?raw=true" height=300</img></div>
